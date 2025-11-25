@@ -1,26 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { Muscle } from '../types';
 import { Zap, Activity, ChevronRight, X, Info, MapPin, ArrowRight, ScanEye, MousePointerClick, Heart, Droplets } from 'lucide-react';
 import MuscleCard from './MuscleCard';
 import FootLayerDiagram from './FootLayerDiagram';
-import { normalizeTerm, getColorTheme, LensType } from '../utils';
+import { normalizeTerm, getColorTheme, LensType, getKeywordForLens } from '../utils';
 
 interface SchematicViewProps {
   muscles: Muscle[];
 }
-
-// --- HELPER FUNCTION ---
-const getKeywordForLens = (lens: LensType): string => {
-  switch (lens) {
-    case 'innervation': return 'inervação';
-    case 'vascularization': return 'artéria';
-    case 'veins': return 'veia';
-    case 'action': return 'ação';
-    case 'origin': return 'origem';
-    case 'insertion': return 'inserção';
-    default: return '';
-  }
-};
 
 // --- PROCESSAMENTO DE DADOS (Lista de Termos Únicos) ---
 
@@ -147,7 +135,7 @@ const SchematicNode: React.FC<{
     return (
         <div 
             onClick={onClick}
-            className={`absolute ${positionClass} w-44 z-10 cursor-pointer group transition-all duration-300 hover:scale-105 hover:z-30 flex ${alignClass}`}
+            className={`absolute ${positionClass} w-32 z-10 cursor-pointer group transition-all duration-300 hover:scale-105 hover:z-30 flex ${alignClass}`}
         >
             <div className={`
                 w-full bg-white/80 backdrop-blur-sm rounded-xl shadow-md border ${theme.border} 
@@ -184,6 +172,21 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
   const [selectedGroup, setSelectedGroup] = useState<{ title: string; muscles: Muscle[] } | null>(null);
   const [activeLens, setActiveLens] = useState<LensType>('innervation');
   const [showInfo, setShowInfo] = useState(() => !sessionStorage.getItem('schematicInfoDismissed'));
+
+  // Efeito para fechar o modal com ESC e travar o scroll do body
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedGroup(null);
+    };
+    if (selectedGroup) {
+      window.addEventListener('keydown', handleEsc);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedGroup]);
 
   // --- DATA PROCESSING ---
   const musclesByRegion = useMemo(() => {
@@ -385,6 +388,48 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
       </button>
     );
   };
+  
+  const modalContent = selectedGroup && (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+        <div 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity animate-fade-in"
+            onClick={() => setSelectedGroup(null)}
+        ></div>
+        
+        <div className="bg-slate-50 rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col relative animate-zoom-in border border-white/20">
+            <div className="p-5 border-b border-slate-200 bg-white flex justify-between items-center sticky top-0 z-20 shadow-sm">
+            <div>
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">{selectedGroup.title}</h3>
+                {(() => {
+                    const activeTheme = getColorTheme(getKeywordForLens(activeLens));
+                    return (
+                    <p className="text-slate-500 text-xs mt-0.5 flex items-center font-medium">
+                        <MousePointerClick className={`w-3.5 h-3.5 mr-1 ${activeTheme.text}`} />
+                        Lente ativa: <span className={`ml-1 uppercase px-1.5 rounded text-[10px] font-bold ${activeTheme.soft} ${activeTheme.text} border ${activeTheme.border}`}>{getKeywordForLens(activeLens)}</span>
+                    </p>
+                    );
+                })()}
+            </div>
+            <button onClick={() => setSelectedGroup(null)} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-slate-600">
+                <X className="w-5 h-5" />
+            </button>
+            </div>
+
+            <div className="p-5 overflow-y-auto custom-scrollbar bg-slate-50">
+                <div className="space-y-6">
+                    {groupedMusclesInModal.map((group) => (
+                        <MuscleCluster 
+                            key={group.title} 
+                            title={group.title} 
+                            count={group.items.length} 
+                            muscles={group.items} 
+                        />
+                    ))}
+                </div>
+            </div>
+        </div>
+    </div>
+  );
 
   return (
     <div className="relative min-h-[600px] animate-fade-in bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px]">
@@ -431,47 +476,7 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
         ))}
       </div>
 
-      {selectedGroup && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-          <div 
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity animate-fade-in"
-            onClick={() => setSelectedGroup(null)}
-          ></div>
-          
-          <div className="bg-slate-50 rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col relative animate-zoom-in border border-white/20">
-            <div className="p-5 border-b border-slate-200 bg-white flex justify-between items-center sticky top-0 z-20 shadow-sm">
-              <div>
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">{selectedGroup.title}</h3>
-                {(() => {
-                  const activeTheme = getColorTheme(getKeywordForLens(activeLens));
-                  return (
-                    <p className="text-slate-500 text-xs mt-0.5 flex items-center font-medium">
-                        <MousePointerClick className={`w-3.5 h-3.5 mr-1 ${activeTheme.text}`} />
-                        Lente ativa: <span className={`ml-1 uppercase px-1.5 rounded text-[10px] font-bold ${activeTheme.soft} ${activeTheme.text} border ${activeTheme.border}`}>{getKeywordForLens(activeLens)}</span>
-                    </p>
-                  );
-                })()}
-              </div>
-              <button onClick={() => setSelectedGroup(null)} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-5 overflow-y-auto custom-scrollbar bg-slate-50">
-                <div className="space-y-6">
-                    {groupedMusclesInModal.map((group) => (
-                        <MuscleCluster 
-                            key={group.title} 
-                            title={group.title} 
-                            count={group.items.length} 
-                            muscles={group.items} 
-                        />
-                    ))}
-                </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {selectedGroup && ReactDOM.createPortal(modalContent, document.body)}
     </div>
   );
 };

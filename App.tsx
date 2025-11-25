@@ -62,7 +62,7 @@ const App: React.FC = () => {
     setSearchQuery('');
   };
 
-  const isFilterAreaVisible = viewMode !== 'relations' && viewMode !== 'quiz';
+  const isFilterAreaVisible = viewMode === 'cards' || viewMode === 'table';
 
   const NavTab = ({ mode, label, icon: Icon, isSpecial = false }: { mode: ViewMode, label: string, icon: any, isSpecial?: boolean }) => {
     const isActive = viewMode === mode;
@@ -156,7 +156,7 @@ const App: React.FC = () => {
             {/* Filters Area */}
             <div className={`
                 flex flex-wrap items-center gap-3 transition-all duration-300
-                ${!isFilterAreaVisible ? 'opacity-0 pointer-events-none w-0 h-0 overflow-hidden lg:opacity-100 lg:pointer-events-auto lg:w-auto lg:h-auto' : 'opacity-100'}
+                ${isFilterAreaVisible ? 'opacity-100' : 'opacity-0 pointer-events-none h-0 overflow-hidden'}
             `}>
               <div className="flex items-center text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">
                 <Filter className="w-3 h-3 mr-1.5" />

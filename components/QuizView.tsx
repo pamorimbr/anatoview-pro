@@ -101,7 +101,7 @@ const QuizView: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-sm font-bold">
+        <div className="flex flex-wrap items-center justify-center gap-3 text-sm font-bold">
           <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full">
             <Check className="w-4 h-4" />
             <span>Acertos: {scores.correct}</span>
@@ -110,6 +110,13 @@ const QuizView: React.FC = () => {
             <X className="w-4 h-4" />
             <span>Erros: {scores.incorrect}</span>
           </div>
+          <button
+            onClick={() => startQuiz(selectedCategory)}
+            className="flex items-center gap-2 text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full hover:bg-slate-200 transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>Reiniciar</span>
+          </button>
         </div>
       </div>
 

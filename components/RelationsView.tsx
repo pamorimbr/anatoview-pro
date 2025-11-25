@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Muscle } from '../types';
 import MuscleCard from './MuscleCard';
-import { LensType, normalizeTerm, getColorTheme } from '../utils';
+import { LensType, normalizeTerm, getColorTheme, getKeywordForLens } from '../utils';
 import { Zap, Activity, MapPin, ArrowRight, ScanEye, Search, Heart, Droplets } from 'lucide-react';
 
 interface RelationsViewProps {
@@ -10,20 +10,25 @@ interface RelationsViewProps {
 
 type GroupedMuscles = Record<string, Muscle[]>;
 
-const LensButton = ({ id, label, icon: Icon, activeLens, onClick }: { id: LensType, label: string, icon: any, activeLens: LensType, onClick: (lens: LensType) => void }) => (
-    <button
-      onClick={() => onClick(id)}
-      className={`
-        px-4 py-2 rounded-full text-sm font-semibold flex items-center transition-all duration-200 flex-shrink-0
-        ${activeLens === id 
-            ? 'bg-slate-800 text-white shadow-md scale-105' 
-            : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200 hover:text-slate-800'}
-      `}
-    >
-      <Icon className="w-4 h-4 mr-2" />
-      {label}
-    </button>
-);
+const LensButton = ({ id, label, icon: Icon, activeLens, onClick }: { id: LensType, label: string, icon: any, activeLens: LensType, onClick: (lens: LensType) => void }) => {
+    const theme = getColorTheme(getKeywordForLens(id));
+    const isActive = activeLens === id;
+    
+    return (
+        <button
+            onClick={() => onClick(id)}
+            className={`
+                px-3 py-1.5 rounded-full text-xs font-semibold flex items-center transition-all duration-200 flex-shrink-0
+                ${isActive
+                    ? `${theme.solid} text-white shadow-lg scale-110 ring-2 ring-white/50`
+                    : `${theme.soft} ${theme.text} border ${theme.border} hover:shadow-md hover:scale-105`}
+            `}
+        >
+            <Icon className="w-3.5 h-3.5 mr-1.5" />
+            {label}
+        </button>
+    );
+};
 
 const RelationsView: React.FC<RelationsViewProps> = ({ muscles }) => {
   const [activeLens, setActiveLens] = useState<LensType>('origin');
@@ -94,7 +99,7 @@ const RelationsView: React.FC<RelationsViewProps> = ({ muscles }) => {
             </div>
         </div>
         
-        <div className="mt-6 flex flex-wrap gap-2 justify-start items-center p-1 overflow-x-auto hide-scrollbar">
+        <div className="mt-6 flex flex-wrap gap-2 justify-start items-center p-1.5 overflow-x-auto hide-scrollbar">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2">Critério:</span>
             <LensButton id="origin" label="Origem" icon={MapPin} activeLens={activeLens} onClick={setActiveLens} />
             <LensButton id="insertion" label="Inserção" icon={ArrowRight} activeLens={activeLens} onClick={setActiveLens} />
@@ -115,7 +120,7 @@ const RelationsView: React.FC<RelationsViewProps> = ({ muscles }) => {
                 </div>
                 <input
                   type="text"
-                  placeholder={`Filtrar ${activeLens}...`}
+                  placeholder={`Filtrar ${getKeywordForLens(activeLens)}...`}
                   className="block w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-sm leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-medical-500/20 focus:border-medical-500 transition-all"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}

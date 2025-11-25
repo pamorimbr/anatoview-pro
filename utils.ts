@@ -1,5 +1,17 @@
 export type LensType = 'innervation' | 'action' | 'origin' | 'insertion' | 'vascularization' | 'veins';
 
+export const getKeywordForLens = (lens: LensType): string => {
+  switch (lens) {
+    case 'innervation': return 'inervação';
+    case 'vascularization': return 'artéria';
+    case 'veins': return 'veia';
+    case 'action': return 'ação';
+    case 'origin': return 'origem';
+    case 'insertion': return 'inserção';
+    default: return '';
+  }
+};
+
 export const normalizeTerm = (text: string, type: LensType): string => {
   const lower = text.toLowerCase();
   const trimmed = text.trim();
