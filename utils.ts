@@ -4,9 +4,6 @@ export const normalizeTerm = (text: string, type: LensType): string => {
   const lower = text.toLowerCase();
   const trimmed = text.trim();
 
-  // Helper to capitalize first letter
-  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
   if (type === 'veins') {
     if (lower.includes('safena magna')) return 'Veia Safena Magna';
     if (lower.includes('safena parva')) return 'Veia Safena Parva';

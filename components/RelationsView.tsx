@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Muscle } from '../types';
 import MuscleCard from './MuscleCard';
 import { LensType, normalizeTerm, getColorTheme } from '../utils';
-import { Zap, Activity, MapPin, ArrowRight, ScanEye, Search, Info, X, Heart, Droplets } from 'lucide-react';
+import { Zap, Activity, MapPin, ArrowRight, ScanEye, Search, Heart, Droplets } from 'lucide-react';
 
 interface RelationsViewProps {
   muscles: Muscle[];
