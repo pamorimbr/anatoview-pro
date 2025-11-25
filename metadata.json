@@ -1,0 +1,5 @@
+{
+  "name": "AnatoView Pro",
+  "description": "Uma interface dinâmica e interativa para visualização filtrada de anatomia muscular, focada em regiões, compartimentos, origens, inserções e ações.",
+  "requestFramePermissions": []
+}
