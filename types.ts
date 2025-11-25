@@ -12,4 +12,4 @@ export interface Muscle {
   action: string;
 }
 
-export type ViewMode = 'cards' | 'table' | 'schematic' | 'relations';
+export type ViewMode = 'cards' | 'table' | 'schematic' | 'relations' | 'quiz';

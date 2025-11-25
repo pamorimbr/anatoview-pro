@@ -3,8 +3,9 @@ import { ANATOMY_DATA } from './constants';
 import MuscleCard from './components/MuscleCard';
 import SchematicView from './components/SchematicView';
 import RelationsView from './components/RelationsView';
+import QuizView from './components/QuizView';
 import { ViewMode } from './types';
-import { Search, Grid, List, Activity, Filter, X, Network, GitMerge, ChevronDown, HeartHandshake } from 'lucide-react';
+import { Search, Grid, List, Activity, Filter, X, Network, GitMerge, ChevronDown, HeartHandshake, BrainCircuit } from 'lucide-react';
 
 const App: React.FC = () => {
   const [selectedRegion, setSelectedRegion] = useState<string>('Todos');
@@ -28,8 +29,8 @@ const App: React.FC = () => {
 
   // Filter Logic
   const filteredMuscles = useMemo(() => {
-    // In relations view, we always want all muscles available to the component
-    if (viewMode === 'relations') return ANATOMY_DATA;
+    // In relations or quiz view, we always want all muscles available to the component
+    if (viewMode === 'relations' || viewMode === 'quiz') return ANATOMY_DATA;
 
     return ANATOMY_DATA.filter(muscle => {
       const matchRegion = selectedRegion === 'Todos' || muscle.region === selectedRegion;
@@ -61,22 +62,42 @@ const App: React.FC = () => {
     setSearchQuery('');
   };
 
-  const isRelationsView = viewMode === 'relations';
+  const isFilterAreaVisible = viewMode !== 'relations' && viewMode !== 'quiz';
 
-  const NavTab = ({ mode, label, icon: Icon }: { mode: ViewMode, label: string, icon: any }) => (
-    <button
-      onClick={() => setViewMode(mode)}
-      className={`
-        flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200
-        ${viewMode === mode 
-          ? 'bg-white text-medical-700 shadow-sm ring-1 ring-slate-200' 
-          : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}
-      `}
-    >
-      <Icon className={`w-4 h-4 ${viewMode === mode ? 'text-medical-600' : 'text-slate-400'}`} />
-      {label}
-    </button>
-  );
+  const NavTab = ({ mode, label, icon: Icon, isSpecial = false }: { mode: ViewMode, label: string, icon: any, isSpecial?: boolean }) => {
+    const isActive = viewMode === mode;
+    
+    let tabClasses = '';
+    let iconClasses = '';
+
+    if (isSpecial) {
+      // Botão especial: verde claro (inativo) e verde vibrante (ativo).
+      tabClasses = isActive 
+        ? 'bg-emerald-500 text-white shadow-lg ring-2 ring-emerald-300/50' // Ativo
+        : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 shadow-sm'; // Inativo
+      iconClasses = isActive ? 'text-white' : 'text-emerald-600';
+    } else {
+      // Botões normais
+      tabClasses = isActive
+        ? 'bg-white text-medical-700 shadow-sm ring-1 ring-slate-200' // Ativo
+        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'; // Inativo
+      iconClasses = isActive ? 'text-medical-600' : 'text-slate-400';
+    }
+
+    return (
+      <button
+        onClick={() => setViewMode(mode)}
+        className={`
+          flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200
+          ${tabClasses}
+          ${isSpecial ? 'font-bold uppercase tracking-wider' : ''}
+        `}
+      >
+        <Icon className={`w-4 h-4 ${iconClasses}`} />
+        {label}
+      </button>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
@@ -129,12 +150,13 @@ const App: React.FC = () => {
               <NavTab mode="table" label="Tabela" icon={List} />
               <NavTab mode="schematic" label="Esquema" icon={Network} />
               <NavTab mode="relations" label="Relações" icon={GitMerge} />
+              <NavTab mode="quiz" label="Questões de Prova" icon={BrainCircuit} isSpecial />
             </div>
 
             {/* Filters Area */}
             <div className={`
                 flex flex-wrap items-center gap-3 transition-all duration-300
-                ${isRelationsView ? 'opacity-0 pointer-events-none w-0 h-0 overflow-hidden' : 'opacity-100'}
+                ${!isFilterAreaVisible ? 'opacity-0 pointer-events-none w-0 h-0 overflow-hidden lg:opacity-100 lg:pointer-events-auto lg:w-auto lg:h-auto' : 'opacity-100'}
             `}>
               <div className="flex items-center text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">
                 <Filter className="w-3 h-3 mr-1.5" />
@@ -182,7 +204,9 @@ const App: React.FC = () => {
 
       {/* Main Content */}
       <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {filteredMuscles.length > 0 ? (
+        {viewMode === 'quiz' ? (
+          <QuizView />
+        ) : filteredMuscles.length > 0 ? (
           <>
             {viewMode === 'cards' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in">
@@ -228,7 +252,7 @@ const App: React.FC = () => {
                 </div>
             )}
             {viewMode === 'schematic' && <SchematicView muscles={filteredMuscles} />}
-            {viewMode === 'relations' && <RelationsView muscles={filteredMuscles} />}
+            {viewMode === 'relations' && <RelationsView muscles={ANATOMY_DATA} />}
           </>
         ) : (
           <div className="text-center py-20 animate-fade-in">

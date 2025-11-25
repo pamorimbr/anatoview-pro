@@ -9,6 +9,19 @@ interface SchematicViewProps {
   muscles: Muscle[];
 }
 
+// --- HELPER FUNCTION ---
+const getKeywordForLens = (lens: LensType): string => {
+  switch (lens) {
+    case 'innervation': return 'inervação';
+    case 'vascularization': return 'artéria';
+    case 'veins': return 'veia';
+    case 'action': return 'ação';
+    case 'origin': return 'origem';
+    case 'insertion': return 'inserção';
+    default: return '';
+  }
+};
+
 // --- PROCESSAMENTO DE DADOS (Lista de Termos Únicos) ---
 
 const getUniqueTerms = (muscles: Muscle[], type: LensType) => {
@@ -88,7 +101,7 @@ const MuscleCluster: React.FC<{ title: string; count: number; muscles: Muscle[] 
 // --- COMPONENTES DO DIAGRAMA (HUB & SATELLITES) ---
 
 const CentralHub: React.FC<{ title: string; total: number; lens: LensType }> = ({ title, total, lens }) => {
-    const theme = getColorTheme(lens === 'innervation' ? 'nervo' : lens === 'vascularization' ? 'artéria' : lens === 'veins' ? 'veia' : 'ação');
+    const theme = getColorTheme(getKeywordForLens(lens));
     const titleParts = title.split(' ');
 
     return (
@@ -118,14 +131,23 @@ const SchematicNode: React.FC<{
     alignClass?: string;
 }> = ({ title, muscles, lens, onClick, positionClass, alignClass = "" }) => {
     if (!muscles || muscles.length === 0) return null;
-
-    const terms = getUniqueTerms(muscles, lens);
-    const theme = terms.length > 0 ? getColorTheme(terms[0]) : getColorTheme('');
+    
+    const lensKeyword = getKeywordForLens(lens);
+    const uniqueTerms = getUniqueTerms(muscles, lens);
+    
+    // Use theme from lens keyword for consistency, but also allow Origin/Insertion colors
+    let theme;
+    if (lens === 'origin' || lens === 'insertion') {
+       theme = getColorTheme(lens);
+    } else {
+       theme = getColorTheme(lensKeyword);
+    }
+    
 
     return (
         <div 
             onClick={onClick}
-            className={`absolute ${positionClass} w-40 z-10 cursor-pointer group transition-all duration-300 hover:scale-105 hover:z-30 flex ${alignClass}`}
+            className={`absolute ${positionClass} w-44 z-10 cursor-pointer group transition-all duration-300 hover:scale-105 hover:z-30 flex ${alignClass}`}
         >
             <div className={`
                 w-full bg-white/80 backdrop-blur-sm rounded-xl shadow-md border ${theme.border} 
@@ -134,7 +156,9 @@ const SchematicNode: React.FC<{
             `}>
                 {/* Header */}
                 <div className="flex justify-between items-center border-b border-slate-100 pb-1 mb-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 truncate w-20">{title}</span>
+                    {title ? (
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-600">{title}</span>
+                    ) : <div /> /* Placeholder */}
                     <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${theme.soft} ${theme.text}`}>
                         {muscles.length}
                     </span>
@@ -142,7 +166,7 @@ const SchematicNode: React.FC<{
 
                 {/* Content List */}
                 <div className="flex flex-col gap-1 max-h-[85px] overflow-y-auto custom-scrollbar pr-1">
-                    {terms.map((term, index) => (
+                    {uniqueTerms.map((term, index) => (
                         <div key={index} className="flex items-start gap-1.5">
                             <div className={`w-1.5 h-1.5 rounded-full ${theme.solid} mt-1 flex-shrink-0`}></div>
                             <span className={`text-[10px] font-semibold leading-tight text-slate-600 group-hover:text-slate-900`}>
@@ -227,16 +251,61 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
       byCompartment[key].push(m);
     });
 
+    // --- CUSTOM LAYOUT FOR GLUTEAL REGION ---
+    if (regionName.includes('Glútea')) {
+      return (
+        <div className="relative w-[380px] h-[440px] sm:w-[480px] sm:h-[540px] flex items-center justify-center select-none">
+          {/* Labels Externas */}
+          <div className="absolute -bottom-0 left-1/2 -translate-x-1/2 text-xs font-bold text-slate-400 uppercase tracking-widest">Posterior</div>
+          <div className="absolute -left-2 top-1/2 -translate-y-1/2 -rotate-90 text-xs font-bold text-slate-400 uppercase tracking-widest">Lateral</div>
+          <div className="absolute -right-2 top-1/2 -translate-y-1/2 rotate-90 text-xs font-bold text-slate-400 uppercase tracking-widest">Medial</div>
+          
+          {/* Container do Diagrama */}
+          <div className="relative w-full h-full">
+            {/* SVG de Fundo (Semicírculo) */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none text-slate-200" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M 5 50 C 5 74.8, 25.2 95, 50 95 S 95 74.8, 95 50" fill="none" stroke="currentColor" strokeWidth="0.5" className="opacity-70" vectorEffect="non-scaling-stroke" />
+                <path d="M 25 50 C 25 63.8, 36.2 75, 50 75 S 75 63.8, 75 50" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 2" className="opacity-50" vectorEffect="non-scaling-stroke" />
+                <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
+                <line x1="50" y1="50" x2="50" y2="95" stroke="currentColor" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
+            </svg>
+            
+            <div className="absolute top-[28%] left-1/2 -translate-x-1/2">
+                <CentralHub title={regionName} total={regionMuscles.length} lens={activeLens} />
+            </div>
+
+            <SchematicNode
+                key="Profunda"
+                title="Profundo"
+                muscles={byCompartment['Profunda']}
+                lens={activeLens}
+                onClick={() => setSelectedGroup({ title: `${regionName} - Profundo`, muscles: byCompartment['Profunda'] })}
+                positionClass="top-[55%] left-1/2 -translate-x-1/2"
+                alignClass="justify-center"
+            />
+            
+            <SchematicNode
+                key="Superficial"
+                title="Superficial"
+                muscles={byCompartment['Superficial']}
+                lens={activeLens}
+                onClick={() => setSelectedGroup({ title: `${regionName} - Superficial`, muscles: byCompartment['Superficial'] })}
+                positionClass="bottom-[5%] left-1/2 -translate-x-1/2"
+                alignClass="justify-center"
+            />
+          </div>
+        </div>
+      );
+    }
+
     const positions: Record<string, { pos: string, align: string }> = {};
     
+    // Posicionamento dos blocos
     if (regionName.includes('Coxa') || regionName.includes('Perna')) {
       positions['Anterior'] = { pos: 'top-0 left-1/2 -translate-x-1/2', align: 'justify-center' };
       positions['Posterior'] = { pos: 'bottom-0 left-1/2 -translate-x-1/2', align: 'justify-center' };
       positions['Medial'] = { pos: 'right-0 top-1/2 -translate-y-1/2', align: 'justify-end' };
       positions['Lateral'] = { pos: 'left-0 top-1/2 -translate-y-1/2', align: 'justify-start' };
-    } else if (regionName.includes('Glútea')) {
-      positions['Superficial'] = { pos: 'top-4 left-1/2 -translate-x-1/2', align: 'justify-center' };
-      positions['Profunda'] = { pos: 'bottom-4 left-1/2 -translate-x-1/2', align: 'justify-center' };
     } else {
       const keys = Object.keys(byCompartment);
       if (keys[0]) positions[keys[0]] = { pos: 'top-0 left-1/2 -translate-x-1/2', align: 'justify-center' };
@@ -246,69 +315,76 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
     }
     
     return (
-      <div className="relative w-[320px] h-[320px] sm:w-[360px] sm:h-[360px] flex items-center justify-center select-none">
+      <div className="relative w-[380px] h-[380px] sm:w-[480px] sm:h-[480px] flex items-center justify-center select-none">
          
-         <svg className="absolute inset-0 w-full h-full pointer-events-none text-slate-300">
-            {(positions['Anterior'] || positions['Superficial']) && (
-                <g>
-                    <path d="M50% 50% L50% 18%" className="stroke-current stroke-2" fill="none" />
-                    <circle cx="50%" cy="18%" r="4" className="fill-current" />
-                </g>
-            )}
-            {(positions['Posterior'] || positions['Profunda']) && (
-                <g>
-                    <path d="M50% 50% L50% 82%" className="stroke-current stroke-2" fill="none" />
-                    <circle cx="50%" cy="82%" r="4" className="fill-current" />
-                </g>
-            )}
-            {positions['Lateral'] && (
-                 <g>
-                    <path d="M50% 50% L18% 50%" className="stroke-current stroke-2" fill="none" />
-                    <circle cx="18%" cy="50%" r="4" className="fill-current" />
-                 </g>
-            )}
-            {positions['Medial'] && (
-                 <g>
-                    <path d="M50% 50% L82% 50%" className="stroke-current stroke-2" fill="none" />
-                    <circle cx="82%" cy="50%" r="4" className="fill-current" />
-                 </g>
-            )}
-         </svg>
+         {/* Labels Externas */}
+         { (regionName.includes('Coxa') || regionName.includes('Perna')) && (
+            <>
+               <div className="absolute -top-0 left-1/2 -translate-x-1/2 text-xs font-bold text-slate-400 uppercase tracking-widest">Anterior</div>
+               <div className="absolute -bottom-0 left-1/2 -translate-x-1/2 text-xs font-bold text-slate-400 uppercase tracking-widest">Posterior</div>
+               <div className="absolute -left-2 top-1/2 -translate-y-1/2 -rotate-90 text-xs font-bold text-slate-400 uppercase tracking-widest">Lateral</div>
+               <div className="absolute -right-2 top-1/2 -translate-y-1/2 rotate-90 text-xs font-bold text-slate-400 uppercase tracking-widest">Medial</div>
+            </>
+         )}
 
-         {Object.entries(positions).map(([comp, config]) => {
-             if (!byCompartment[comp]) return null;
-             return (
-                 <SchematicNode
-                    key={comp}
-                    title={comp}
-                    muscles={byCompartment[comp]}
-                    lens={activeLens}
-                    onClick={() => setSelectedGroup({ title: `${regionName} - ${comp}`, muscles: byCompartment[comp] })}
-                    positionClass={config.pos}
-                    alignClass={config.align}
-                 />
-             );
-         })}
+         {/* Container do Diagrama (Círculo e Conteúdo) */}
+         <div className="relative w-[320px] h-[320px] sm:w-[420px] sm:h-[420px]">
+            {/* SVG de Fundo (Estrutura) */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none text-slate-200" viewBox="0 0 100 100">
+               <circle cx="50" cy="50" r="49" fill="none" stroke="currentColor" strokeWidth="0.5" className="opacity-70" />
+               <circle cx="50" cy="50" r="28" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 2" className="opacity-50" />
+               
+               { (regionName.includes('Coxa') || regionName.includes('Perna')) && (
+                    <>
+                       <line x1="50" y1="1" x2="50" y2="22" stroke="currentColor" strokeWidth="0.5" />
+                       <line x1="50" y1="99" x2="50" y2="78" stroke="currentColor" strokeWidth="0.5" />
+                       <line x1="1" y1="50" x2="22" y2="50" stroke="currentColor" strokeWidth="0.5" />
+                       <line x1="99" y1="50" x2="78" y2="50" stroke="currentColor" strokeWidth="0.5" />
+                    </>
+               )}
+            </svg>
+            
+            <div className="relative w-full h-full flex items-center justify-center">
+                <CentralHub title={regionName} total={regionMuscles.length} lens={activeLens} />
 
-         <CentralHub title={regionName} total={regionMuscles.length} lens={activeLens} />
+                {Object.entries(positions).map(([comp, config]) => {
+                    if (!byCompartment[comp]) return null;
+                    return (
+                        <SchematicNode
+                           key={comp}
+                           title={comp}
+                           muscles={byCompartment[comp]}
+                           lens={activeLens}
+                           onClick={() => setSelectedGroup({ title: `${regionName} - ${comp}`, muscles: byCompartment[comp] })}
+                           positionClass={config.pos}
+                           alignClass={config.align}
+                        />
+                    );
+                })}
+            </div>
+         </div>
       </div>
     );
   };
 
-  const LensButton = ({ id, label, icon: Icon }: { id: LensType, label: string, icon: any }) => (
-    <button
-      onClick={() => setActiveLens(id)}
-      className={`
-        px-3 py-1.5 rounded-full text-xs font-semibold flex items-center transition-all duration-200 flex-shrink-0
-        ${activeLens === id 
-          ? 'bg-slate-800 text-white shadow-md scale-105 ring-2 ring-slate-200 ring-offset-1' 
-          : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200 hover:text-slate-800'}
-      `}
-    >
-      <Icon className="w-3.5 h-3.5 mr-1.5" />
-      {label}
-    </button>
-  );
+  const LensButton = ({ id, label, icon: Icon }: { id: LensType, label: string, icon: any }) => {
+    const theme = getColorTheme(getKeywordForLens(id));
+    const isActive = activeLens === id;
+    return (
+      <button
+        onClick={() => setActiveLens(id)}
+        className={`
+          px-3 py-1.5 rounded-full text-xs font-semibold flex items-center transition-all duration-200 flex-shrink-0
+          ${isActive
+            ? `${theme.solid} text-white shadow-lg scale-110 ring-2 ring-white/50`
+            : `${theme.soft} ${theme.text} border ${theme.border} hover:shadow-md hover:scale-105`}
+        `}
+      >
+        <Icon className="w-3.5 h-3.5 mr-1.5" />
+        {label}
+      </button>
+    );
+  };
 
   return (
     <div className="relative min-h-[600px] animate-fade-in bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px]">
@@ -331,7 +407,7 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
             </div>
             <div className="flex-grow">
               <p className="text-xs text-medical-800 leading-relaxed font-medium">
-                <strong>Modo Diagrama:</strong> Visualize as relações anatômicas conectadas. Clique nos compartimentos (ao redor) para ver os detalhes completos.
+                <strong>Modo Diagrama:</strong> Explore a anatomia em um corte transversal, semelhante a um corte tomográfico. Clique nos compartimentos para ver os detalhes.
               </p>
             </div>
             <button 
@@ -347,14 +423,9 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
         )}
       </div>
 
-      <div className="flex flex-wrap justify-center items-start gap-x-8 gap-y-12 pb-12">
+      <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-24 pb-12">
         {Object.entries(musclesByRegion).map(([region, regionMuscles]) => (
-          <div key={region} className={`flex flex-col items-center ${region === 'Pé' ? 'w-full' : 'w-auto'}`}>
-             {region !== 'Pé' && (
-                 <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest border-b-2 border-slate-100 pb-1">{region}</span>
-                 </div>
-             )}
+          <div key={region} className={`flex flex-col items-center justify-center ${region === 'Pé' ? 'w-full' : ''}`}>
             {renderRegionDiagram(region, regionMuscles as Muscle[])}
           </div>
         ))}
@@ -371,10 +442,15 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
             <div className="p-5 border-b border-slate-200 bg-white flex justify-between items-center sticky top-0 z-20 shadow-sm">
               <div>
                 <h3 className="text-xl font-black text-slate-900 tracking-tight">{selectedGroup.title}</h3>
-                <p className="text-slate-500 text-xs mt-0.5 flex items-center font-medium">
-                    <MousePointerClick className="w-3.5 h-3.5 mr-1 text-medical-500" />
-                    Lente ativa: <span className="text-medical-600 ml-1 uppercase bg-medical-50 px-1.5 rounded text-[10px] font-bold border border-medical-100">{activeLens}</span>
-                </p>
+                {(() => {
+                  const activeTheme = getColorTheme(getKeywordForLens(activeLens));
+                  return (
+                    <p className="text-slate-500 text-xs mt-0.5 flex items-center font-medium">
+                        <MousePointerClick className={`w-3.5 h-3.5 mr-1 ${activeTheme.text}`} />
+                        Lente ativa: <span className={`ml-1 uppercase px-1.5 rounded text-[10px] font-bold ${activeTheme.soft} ${activeTheme.text} border ${activeTheme.border}`}>{getKeywordForLens(activeLens)}</span>
+                    </p>
+                  );
+                })()}
               </div>
               <button onClick={() => setSelectedGroup(null)} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-slate-600">
                 <X className="w-5 h-5" />
