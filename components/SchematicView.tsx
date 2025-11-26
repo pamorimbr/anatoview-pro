@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Muscle } from '../types';
-import { Zap, Activity, ChevronRight, X, Info, MapPin, ArrowRight, ScanEye, MousePointerClick, Heart, Droplets, BicepsFlexed } from 'lucide-react';
+import { Zap, Activity, ChevronRight, X, Info, MapPin, ArrowRight, ScanEye, MousePointerClick, Heart, Droplets, Dumbbell } from 'lucide-react';
 import MuscleCard from './MuscleCard';
 import FootLayerDiagram from './FootLayerDiagram';
 import { normalizeTerm, getColorTheme, LensType, getKeywordForLens } from '../utils';
@@ -23,7 +23,7 @@ const getLensConfig = (lens: LensType, isActive: boolean) => {
                 className: `${baseClasses} ${isActive 
                     ? 'bg-rose-600 text-white border-rose-700 ring-2 ring-rose-400 ring-offset-1' 
                     : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50'}`,
-                icon: BicepsFlexed
+                icon: Dumbbell
             };
         case 'innervation': // Amarelo
             return {
@@ -124,7 +124,7 @@ const MuscleCluster: React.FC<{ title: string; count: number; muscles: Muscle[] 
                         {title.toLowerCase().includes('inervação') || title.toLowerCase().includes('nervo') ? <Zap className="w-4 h-4" fill="currentColor" /> :
                          title.toLowerCase().includes('artéria') ? <Heart className="w-4 h-4" fill="currentColor" /> :
                          title.toLowerCase().includes('veia') ? <Droplets className="w-4 h-4" fill="currentColor" /> :
-                         title.toLowerCase().includes('músculo') ? <BicepsFlexed className="w-4 h-4" fill="currentColor" /> :
+                         title.toLowerCase().includes('músculo') ? <Dumbbell className="w-4 h-4" fill="currentColor" /> :
                          <ScanEye className="w-4 h-4" />}
                     </span>
                     {title}
@@ -174,6 +174,10 @@ const SchematicNode: React.FC<{
 }> = ({ title, muscles, lens, onClick, customClass }) => {
     if (!muscles || muscles.length === 0) return null;
     
+    // Contagem de Músculos Únicos (e não entradas no banco de dados)
+    // Isso evita que Adutor Magno (2 partes) conte como 2.
+    const uniqueMusclesCount = new Set(muscles.map(m => m.name)).size;
+    
     const lensKeyword = getKeywordForLens(lens); 
     const theme = getColorTheme(lensKeyword);
     
@@ -181,7 +185,7 @@ const SchematicNode: React.FC<{
         <div 
             onClick={onClick}
             className={`
-                w-40 z-10 cursor-pointer group transition-all duration-300 hover:scale-105 hover:z-30
+                w-36 z-10 cursor-pointer group transition-all duration-300 hover:scale-105 hover:z-30
                 ${customClass || ''}
             `}
         >
@@ -193,7 +197,7 @@ const SchematicNode: React.FC<{
                 <div className={`flex justify-between items-center border-b ${theme.border} pb-1.5 mb-0.5`}>
                     <span className={`text-[11px] font-black uppercase tracking-wider ${theme.text}`}>{title}</span>
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${theme.solid} text-white`}>
-                        {muscles.length}
+                        {uniqueMusclesCount}
                     </span>
                 </div>
                 <div className="flex flex-col gap-1 pr-1 max-h-[140px] overflow-y-auto custom-scrollbar">
@@ -234,10 +238,9 @@ const RegionContainer: React.FC<{
     };
 
     // Ajuste de largura mínima para garantir que caibam lado a lado no desktop
-    // Gluteal (vertical) precisa de menos largura. Coxa/Perna (horizontal) precisam de mais.
     const containerClasses = variant === 'coxa' || variant === 'perna'
-        ? 'min-w-[300px] rounded-[3rem]'
-        : 'min-w-[260px] sm:min-w-[280px] rounded-[2.5rem]';
+        ? 'min-w-[280px] rounded-[3rem]'
+        : 'min-w-[250px] rounded-[2.5rem]';
 
     return (
         <div className={`
@@ -277,8 +280,8 @@ const RegionContainer: React.FC<{
                 style={{ borderRadius: getBorderStyle().replace('border-radius: ', '') }}
             ></div>
             
-            {/* Content Area - Com padding para garantir que os blocos não toquem nas bordas */}
-            <div className="relative w-full h-full flex flex-col items-center justify-center z-10 py-6 px-1">
+            {/* Content Area - Com padding para garantir que os blocos não toquem nas bordas e nos labels laterais */}
+            <div className="relative w-full h-full flex flex-col items-center justify-center z-10 py-6 px-9">
                 {children}
             </div>
         </div>
@@ -491,7 +494,7 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
 
        {/* Lens Switcher */}
        <div className="sticky top-20 z-30 flex justify-center py-3 bg-slate-50/95 backdrop-blur-sm -mx-4 px-4 border-b border-slate-100 shadow-sm mb-8">
-          <div className="flex gap-3 overflow-x-auto max-w-full pb-1 hide-scrollbar px-2">
+          <div className="flex gap-3 overflow-x-auto max-w-full p-2 hide-scrollbar">
             {(['muscles', 'innervation', 'vascularization', 'veins', 'action', 'origin', 'insertion'] as LensType[]).map(lens => {
                 const config = getLensConfig(lens, activeLens === lens);
                 const Icon = config.icon;
@@ -510,7 +513,7 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
        </div>
 
        {/* MAIN DIAGRAMS AREA - Side by Side Layout for main regions */}
-       <div className="flex flex-wrap justify-center items-start gap-6 px-2 w-full">
+       <div className="flex flex-wrap justify-center items-start gap-3 px-2 w-full">
            {/* GLÚTEA */}
            {musclesByRegion['Região Glútea'] && renderRegionDiagram('Região Glútea', musclesByRegion['Região Glútea'])}
            
