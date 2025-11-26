@@ -62,7 +62,8 @@ const App: React.FC = () => {
     setSearchQuery('');
   };
 
-  const isFilterAreaVisible = viewMode === 'cards' || viewMode === 'table';
+  // Alteração aqui: Adicionado || viewMode === 'schematic'
+  const isFilterAreaVisible = viewMode === 'cards' || viewMode === 'table' || viewMode === 'schematic';
 
   const NavTab = ({ mode, label, icon: Icon, isSpecial = false }: { mode: ViewMode, label: string, icon: any, isSpecial?: boolean }) => {
     const isActive = viewMode === mode;
