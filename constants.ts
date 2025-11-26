@@ -112,6 +112,18 @@ export const ANATOMY_DATA: Muscle[] = [
     veins: 'Veia circunflexa femoral medial',
     action: 'Rotador lateral forte, estabiliza a cabeça do fêmur',
   },
+  {
+    id: 'obt-ext',
+    region: 'Região Glútea',
+    compartment: 'Profunda (Pelvi-trocantéricos)',
+    name: 'Obturador Externo',
+    origin: 'Margens do forame obturado e membrana obturatória',
+    insertion: 'Fossa trocantérica do fêmur',
+    innervation: 'N. Obturador (L2-L4)',
+    vascularization: 'Artéria obturatória e artéria circunflexa femoral medial',
+    veins: 'Veia obturatória e veia circunflexa femoral medial',
+    action: 'Rotação lateral do quadril',
+  },
 
   // COXA ANTERIOR
   {
@@ -285,18 +297,6 @@ export const ANATOMY_DATA: Muscle[] = [
     vascularization: 'Artéria femoral profunda e artéria circunflexa femoral medial',
     veins: 'Veia femoral profunda',
     action: 'Adução do quadril, flexão e rotação medial do joelho',
-  },
-  {
-    id: 'obt-ext-medial',
-    region: 'Coxa',
-    compartment: 'Medial (Adutores)',
-    name: 'Obturador Externo',
-    origin: 'Margens do forame obturado e membrana obturatória',
-    insertion: 'Fossa trocantérica do fêmur',
-    innervation: 'N. Obturador (L2-L4)',
-    vascularization: 'Artéria obturatória e artéria circunflexa femoral medial',
-    veins: 'Veia obturatória e veia circunflexa femoral medial',
-    action: 'Rotação lateral do quadril',
   },
 
   // PERNA ANTERIOR
