@@ -493,7 +493,7 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
        )}
 
        {/* Lens Switcher */}
-       <div className="sticky top-20 z-30 flex justify-center py-3 bg-slate-50/95 backdrop-blur-sm -mx-4 px-4 border-b border-slate-100 shadow-sm mb-8">
+       <div className="sticky top-44 lg:top-32 z-20 flex justify-center py-3 bg-slate-50/95 backdrop-blur-sm -mx-4 px-4 border-b border-slate-100 shadow-sm mb-8">
           <div className="flex gap-3 overflow-x-auto max-w-full p-2 hide-scrollbar">
             {(['muscles', 'innervation', 'vascularization', 'veins', 'action', 'origin', 'insertion'] as LensType[]).map(lens => {
                 const config = getLensConfig(lens, activeLens === lens);
