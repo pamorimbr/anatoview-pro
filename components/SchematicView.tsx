@@ -203,7 +203,7 @@ const RegionContainer: React.FC<{
     children: React.ReactNode, 
     regionName: string, 
     isGluteal?: boolean 
-}> = ({ children, regionName, isGluteal }) => {
+}> = ({ children, isGluteal }) => {
     return (
         <div className="relative bg-white rounded-[2.5rem] p-6 sm:p-8 shadow-sm border border-slate-200 flex flex-col items-center justify-center min-w-[350px] sm:min-w-[400px] h-auto min-h-[450px]">
             {/* Quadrant Indicators */}
