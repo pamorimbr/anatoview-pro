@@ -174,18 +174,18 @@ const MuscleCard: React.FC<MuscleCardProps> = ({ muscle, customTrigger }) => {
           customTrigger
         ) : (
           /* Card Padrão (Usado na Grade e Camadas) */
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-md hover:border-medical-200 transition-all duration-200 h-full flex flex-col justify-center group relative overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2 hover:shadow-md hover:border-medical-200 transition-all duration-200 h-full flex flex-col justify-center group relative overflow-hidden">
             <div className="absolute top-0 right-0 w-16 h-16 bg-medical-50 rounded-bl-full -mr-8 -mt-8 opacity-50 group-hover:scale-110 transition-transform"></div>
             
-            <h3 className="text-lg font-bold text-rose-950 group-hover:text-medical-700 transition-colors relative z-10">
+            <h3 className="text-sm font-bold text-rose-950 group-hover:text-medical-700 transition-colors relative z-10">
               {muscle.name}
             </h3>
-            <p className="text-sm text-slate-500 font-medium mt-1 relative z-10">
+            <p className="text-xs text-slate-500 font-medium mt-1 relative z-10">
               {muscle.region} • {displayCompartment(muscle)}
               {muscle.subCompartment && <span className="text-slate-400 font-normal block text-xs mt-0.5">{muscle.subCompartment}</span>}
             </p>
             
-            <div className="mt-3 flex items-center text-xs font-bold text-medical-600 opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 duration-300">
+            <div className="mt-1.5 flex items-center text-xs font-bold text-medical-600 opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 duration-300">
                 Ver detalhes <ArrowRight className="w-3 h-3 ml-1" />
             </div>
           </div>

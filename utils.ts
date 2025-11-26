@@ -54,20 +54,27 @@ export const normalizeTerm = (text: string, type: LensType): string => {
   }
 
   if (type === 'innervation') {
-    if (lower.includes('femoral') && !lower.includes('quadrado')) return 'Nervo Femoral';
-    if (lower.includes('obturador')) return 'Nervo Obturatório';
-    if (lower.includes('glúteo superior')) return 'Nervo Glúteo Superior';
-    if (lower.includes('glúteo inferior')) return 'Nervo Glúteo Inferior';
-    if (lower.includes('tibial')) return 'Nervo Tibial';
-    if (lower.includes('fibular comum')) return 'Nervo Fibular Comum';
-    if (lower.includes('fibular profundo')) return 'Nervo Fibular Profundo';
-    if (lower.includes('fibular superficial')) return 'Nervo Fibular Superficial';
-    if (lower.includes('plantar medial')) return 'Nervo Plantar Medial';
-    if (lower.includes('plantar lateral')) return 'Nervo Plantar Lateral';
-    if (lower.includes('isquiático') || lower.includes('ciático')) return 'Nervo Isquiático';
-    if (lower.includes('quadrado femoral')) return 'Nervo do Quadrado Femoral';
-    if (lower.includes('ramos ventrais')) return 'Ramos Ventrais (Sacral)';
-    return trimmed; // Retorna o termo original
+    // Normaliza removendo as raízes para agrupamento
+    const normalizedText = trimmed.replace(/\s*\([^)]*\)/g, '');
+    const lowerNormalized = normalizedText.toLowerCase();
+
+    if (lowerNormalized.includes('femoral') && !lowerNormalized.includes('quadrado')) return 'N. Femoral';
+    if (lowerNormalized.includes('obturador')) return 'N. Obturador';
+    if (lowerNormalized.includes('glúteo superior')) return 'N. Glúteo Superior';
+    if (lowerNormalized.includes('glúteo inferior')) return 'N. Glúteo Inferior';
+    if (lowerNormalized.includes('tibial')) return 'N. Tibial';
+    if (lowerNormalized.includes('fibular comum')) return 'N. Fibular Comum';
+    if (lowerNormalized.includes('fibular profundo')) return 'N. Fibular Profundo';
+    if (lowerNormalized.includes('fibular superficial')) return 'N. Fibular Superficial';
+    if (lowerNormalized.includes('plantar medial')) return 'N. Plantar Medial';
+    if (lowerNormalized.includes('plantar lateral')) return 'N. Plantar Lateral';
+    if (lowerNormalized.includes('isquiático') || lowerNormalized.includes('ciático')) return 'N. Isquiático';
+    if (lowerNormalized.includes('do quadrado femoral')) return 'N. do Quadrado Femoral';
+    if (lowerNormalized.includes('do obturador interno')) return 'N. do Obturador Interno';
+    if (lowerNormalized.includes('ramos ventrais de l1-l3')) return 'Ramos Ventrais de L1-L3';
+    if (lowerNormalized.includes('ramos ventrais de l5-s2')) return 'Ramos Ventrais de L5-S2';
+    
+    return normalizedText; // Retorna o termo normalizado sem raízes
   }
 
   if (type === 'action') {
@@ -110,85 +117,38 @@ export const normalizeTerm = (text: string, type: LensType): string => {
 export const getColorTheme = (term: string) => {
     const t = term.toLowerCase();
     
-    // Inervação -> AMARELO (Amber)
-    if (t.includes('nervo') || t.includes('inervação')) {
-        return { 
-            solid: 'bg-amber-500', 
-            soft: 'bg-amber-50', 
-            border: 'border-amber-200',
-            text: 'text-amber-700',
-            ring: 'focus:ring-amber-500'
-        };
-    }
+    // Paleta de Cores Dedicada e Otimizada para Nervos (única e com alto contraste)
+    // Rebalanceado para melhorar a distinção entre nervos adjacentes (ex: Fibulares)
+    if (t.includes('isquiático') || t.includes('ciático')) return { solid: 'bg-slate-500', soft: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-700', ring: 'focus:ring-slate-500' }; // Tronco principal - neutro
+    if (t.includes('tibial')) return { solid: 'bg-amber-500', soft: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', ring: 'focus:ring-amber-500' }; // Ramo principal - quente
+    
+    // Família Fibular (Cores frias e distintas)
+    if (t.includes('fibular comum')) return { solid: 'bg-cyan-500', soft: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-700', ring: 'focus:ring-cyan-500' };
+    if (t.includes('fibular profundo')) return { solid: 'bg-sky-500', soft: 'bg-sky-50', border: 'border-sky-200', text: 'text-sky-700', ring: 'focus:ring-sky-500' };
+    if (t.includes('fibular superficial')) return { solid: 'bg-teal-500', soft: 'bg-teal-50', border: 'border-teal-200', text: 'text-teal-700', ring: 'focus:ring-teal-500' };
+    
+    // Plexo Lombar e Sacral
+    if (t.includes('femoral') && !t.includes('quadrado')) return { solid: 'bg-lime-500', soft: 'bg-lime-50', border: 'border-lime-200', text: 'text-lime-700', ring: 'focus:ring-lime-500' };
+    if (t.includes('obturatório') || t.includes('obturador')) return { solid: 'bg-purple-500', soft: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', ring: 'focus:ring-purple-500' };
+    if (t.includes('glúteo superior')) return { solid: 'bg-indigo-500', soft: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700', ring: 'focus:ring-indigo-500' };
+    if (t.includes('glúteo inferior')) return { solid: 'bg-fuchsia-500', soft: 'bg-fuchsia-50', border: 'border-fuchsia-200', text: 'text-fuchsia-700', ring: 'focus:ring-fuchsia-500' };
+    
+    // Nervos do Pé
+    if (t.includes('plantar medial')) return { solid: 'bg-red-500', soft: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', ring: 'focus:ring-red-500' }; // Cor contrastante com o Lateral
+    if (t.includes('plantar lateral')) return { solid: 'bg-green-500', soft: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', ring: 'focus:ring-green-500' };
 
-    // Vascularização (Artérias) -> VIOLETA/ROXO (Violet)
-    if (t.includes('artéria') || t.includes('vascularização')) {
-        return { 
-            solid: 'bg-violet-500', 
-            soft: 'bg-violet-50', 
-            border: 'border-violet-200',
-            text: 'text-violet-700',
-            ring: 'focus:ring-violet-500'
-        };
-    }
+    // Nervos Menores / Ramos Musculares
+    if (t.includes('quadrado femoral') || t.includes('obturador interno')) return { solid: 'bg-orange-500', soft: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', ring: 'focus:ring-orange-500' };
+    if (t.includes('ramos ventrais de l5-s2')) return { solid: 'bg-rose-500', soft: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700', ring: 'focus:ring-rose-500' };
+    if (t.includes('ramos ventrais de l1-l3')) return { solid: 'bg-pink-500', soft: 'bg-pink-50', border: 'border-pink-200', text: 'text-pink-700', ring: 'focus:ring-pink-500' };
 
-    // Veias -> CIANO (Cyan)
-    if (t.includes('veia') || t.includes('drenagem') || t.includes('venoso')) {
-        return { 
-            solid: 'bg-cyan-500', 
-            soft: 'bg-cyan-50', 
-            border: 'border-cyan-200',
-            text: 'text-cyan-700',
-            ring: 'focus:ring-cyan-500'
-        };
-    }
-
-    // Origem -> VERMELHO (Red)
-    if (t.includes('origem')) {
-        return { 
-            solid: 'bg-red-500', 
-            soft: 'bg-red-50', 
-            border: 'border-red-200',
-            text: 'text-red-700',
-            ring: 'focus:ring-red-500'
-        };
-    }
-
-    // Inserção -> AZUL (Blue)
-    if (t.includes('inserção')) {
-        return { 
-            solid: 'bg-blue-500', 
-            soft: 'bg-blue-50', 
-            border: 'border-blue-200',
-            text: 'text-blue-700',
-            ring: 'focus:ring-blue-500'
-        };
-    }
-
-    // Ação -> VERDE (Emerald)
-    if (t.includes('ação') || t.includes('flexão') || t.includes('extensão') || t.includes('adução') || t.includes('abdução')) {
-        return { 
-            solid: 'bg-emerald-500', 
-            soft: 'bg-emerald-50', 
-            border: 'border-emerald-200',
-            text: 'text-emerald-700',
-            ring: 'focus:ring-emerald-500'
-        };
-    }
-
-    // Fallbacks
-    if (t.includes('femoral') || t.includes('extensão') || t.includes('fêmur') || t.includes('quadril')) {
-        return { solid: 'bg-blue-500', soft: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', ring: 'focus:ring-blue-500' };
-    }
-    if (t.includes('obturador') || t.includes('adução') || t.includes('medial')) {
-        return { solid: 'bg-emerald-500', soft: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', ring: 'focus:ring-emerald-500' };
-    }
-    if (t.includes('tibial') || t.includes('flexão') || t.includes('posterior')) {
-        return { solid: 'bg-amber-500', soft: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', ring: 'focus:ring-amber-500' };
-    }
-    if (t.includes('fibular') || t.includes('eversão') || t.includes('lateral')) {
-        return { solid: 'bg-rose-500', soft: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700', ring: 'focus:ring-rose-500' };
-    }
+    // Cores por tipo (não-nervo)
+    if (t.includes('inervação')) return { solid: 'bg-amber-500', soft: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', ring: 'focus:ring-amber-500' };
+    if (t.includes('artéria') || t.includes('vascularização')) return { solid: 'bg-violet-500', soft: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', ring: 'focus:ring-violet-500' };
+    if (t.includes('veia') || t.includes('drenagem') || t.includes('venoso')) return { solid: 'bg-cyan-500', soft: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-700', ring: 'focus:ring-cyan-500' };
+    if (t.includes('origem')) return { solid: 'bg-red-500', soft: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', ring: 'focus:ring-red-500' };
+    if (t.includes('inserção')) return { solid: 'bg-blue-500', soft: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', ring: 'focus:ring-blue-500' };
+    if (t.includes('ação') || t.includes('flexão') || t.includes('extensão') || t.includes('adução') || t.includes('abdução')) return { solid: 'bg-emerald-500', soft: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', ring: 'focus:ring-emerald-500' };
     
     // Default Gray
     return { 

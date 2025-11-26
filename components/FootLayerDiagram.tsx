@@ -77,7 +77,7 @@ const FootLayerDiagram: React.FC<FootLayerDiagramProps> = ({ muscles }) => {
 
     // LAYOUT PADRÃO (GRID) PARA OUTRAS CAMADAS
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-2 border-l-2 border-slate-200 ml-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pl-2 border-l-2 border-slate-200 ml-4">
             {layerMuscles.map(muscle => (
                 <div key={muscle.id} className="animate-in slide-in-from-left-2 duration-300">
                     <MuscleCard muscle={muscle} />

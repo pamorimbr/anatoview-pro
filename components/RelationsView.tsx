@@ -161,7 +161,7 @@ const RelationsView: React.FC<RelationsViewProps> = ({ muscles }) => {
         {/* Right Panel: Muscle Cards */}
         <div className="md:col-span-2 lg:col-span-3 bg-slate-50/50 overflow-y-auto custom-scrollbar">
           {selectedKey && selectedMuscles.length > 0 ? (
-            <div className="p-4 sm:p-8">
+            <div className="p-4 sm:p-6">
                 <div className="mb-6 flex items-center gap-3">
                     <div className={`p-3 rounded-xl ${getColorTheme(selectedKey).soft}`}>
                         {activeLens === 'innervation' && <Zap className={`w-6 h-6 ${getColorTheme(selectedKey).text}`} />}
@@ -180,7 +180,7 @@ const RelationsView: React.FC<RelationsViewProps> = ({ muscles }) => {
                         </p>
                     </div>
                 </div>
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
                 {selectedMuscles.map(muscle => (
                   <MuscleCard key={`${muscle.id}-${selectedKey}`} muscle={muscle} />
                 ))}

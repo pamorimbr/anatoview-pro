@@ -1,74 +1,45 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { QUIZ_DATA, QuizItem } from '../quizData';
+import React, { useState, useEffect } from 'react';
+import { QuizItem } from '../quizData';
 import { BrainCircuit, Check, X, ChevronDown, RotateCcw, ThumbsUp, ThumbsDown, SkipForward, ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Função para embaralhar um array
-const shuffleArray = (array: any[]) => {
-  let currentIndex = array.length, randomIndex;
-  while (currentIndex !== 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-  }
-  return array;
-};
+interface QuizViewProps {
+  questions: QuizItem[];
+  currentQuestionIndex: number;
+  scores: { correct: number; incorrect: number };
+  isFinished: boolean;
+  selectedCategory: string;
+  categories: string[];
+  onCategoryChange: (category: string) => void;
+  onScore: (result: 'correct' | 'incorrect') => void;
+  onRestart: () => void;
+  onNextQuestion: () => void;
+  onPreviousQuestion: () => void;
+}
 
-const QuizView: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [questions, setQuestions] = useState<QuizItem[]>([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+const QuizView: React.FC<QuizViewProps> = ({
+  questions,
+  currentQuestionIndex,
+  scores,
+  isFinished,
+  selectedCategory,
+  categories,
+  onCategoryChange,
+  onScore,
+  onRestart,
+  onNextQuestion,
+  onPreviousQuestion
+}) => {
   const [isAnswerVisible, setIsAnswerVisible] = useState(false);
-  const [scores, setScores] = useState({ correct: 0, incorrect: 0 });
-  const [isFinished, setIsFinished] = useState(false);
 
-  const categories = useMemo(() => ['all', ...Array.from(new Set(QUIZ_DATA.map(q => q.category)))], []);
-
-  // Inicia ou reinicia o quiz quando a categoria muda
-  const startQuiz = (category: string) => {
-    setSelectedCategory(category);
-    const filteredQuestions = category === 'all' 
-      ? QUIZ_DATA 
-      : QUIZ_DATA.filter(q => q.category === category);
-    
-    setQuestions(shuffleArray([...filteredQuestions]));
-    setCurrentQuestionIndex(0);
-    setScores({ correct: 0, incorrect: 0 });
-    setIsAnswerVisible(false);
-    setIsFinished(false);
-  };
-
+  // Esconde a resposta sempre que a questão mudar
   useEffect(() => {
-    startQuiz('all'); // Inicia com todas as questões por padrão
-  }, []);
+    setIsAnswerVisible(false);
+  }, [currentQuestionIndex]);
 
   const handleRevealAnswer = () => setIsAnswerVisible(true);
 
-  const goToNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-      setIsAnswerVisible(false);
-    } else {
-      setIsFinished(true);
-    }
-  };
-  
-  const handlePreviousQuestion = () => {
-      if (currentQuestionIndex > 0) {
-        setCurrentQuestionIndex(prev => prev - 1);
-        setIsAnswerVisible(false); // Sempre esconde a resposta ao navegar
-      }
-  };
-  
-  const handleNextQuestion = () => {
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex(prev => prev + 1);
-        setIsAnswerVisible(false); // Sempre esconde a resposta ao navegar
-      }
-  };
-
-  const handleScore = (result: 'correct' | 'incorrect') => {
-    setScores(prev => ({ ...prev, [result]: prev[result] + 1 }));
-    goToNextQuestion();
+  const handleScoreAndNext = (result: 'correct' | 'incorrect') => {
+    onScore(result);
   };
   
   const currentQuestion = questions[currentQuestionIndex];
@@ -91,7 +62,7 @@ const QuizView: React.FC = () => {
           <select 
             className="appearance-none w-full sm:min-w-[250px] pl-4 pr-10 py-2 text-sm font-bold border border-slate-200 rounded-lg shadow-sm bg-slate-50 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer text-slate-700"
             value={selectedCategory}
-            onChange={(e) => startQuiz(e.target.value)}
+            onChange={(e) => onCategoryChange(e.target.value)}
           >
             <option value="all">Todas as Categorias</option>
             {categories.slice(1).map(c => <option key={c} value={c}>{c}</option>)}
@@ -111,7 +82,7 @@ const QuizView: React.FC = () => {
             <span>Erros: {scores.incorrect}</span>
           </div>
           <button
-            onClick={() => startQuiz(selectedCategory)}
+            onClick={onRestart}
             className="flex items-center gap-2 text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full hover:bg-slate-200 transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
@@ -129,7 +100,7 @@ const QuizView: React.FC = () => {
              <span className="text-rose-600">Erros: {scores.incorrect}</span>
           </div>
           <button
-            onClick={() => startQuiz(selectedCategory)}
+            onClick={onRestart}
             className="bg-emerald-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-emerald-700 transition-all transform hover:scale-105 flex items-center gap-2 mx-auto"
           >
             <RotateCcw className="w-4 h-4" />
@@ -157,7 +128,6 @@ const QuizView: React.FC = () => {
                     )}
                 </div>
                 
-                {/* Credits Section */}
                 {currentQuestion.category !== 'Prova Final A' && currentQuestion.category !== 'Prova Final B' && (
                     <div className="mt-6 text-right">
                         <p className="text-xs italic text-slate-400">
@@ -172,7 +142,7 @@ const QuizView: React.FC = () => {
                 {!isAnswerVisible ? (
                     <div className="w-full flex justify-center items-center gap-3">
                         <button
-                            onClick={handlePreviousQuestion}
+                            onClick={onPreviousQuestion}
                             disabled={currentQuestionIndex === 0}
                             className="w-auto flex items-center justify-center gap-2 bg-slate-200 text-slate-600 font-semibold py-3 px-5 rounded-lg hover:bg-slate-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
@@ -185,7 +155,7 @@ const QuizView: React.FC = () => {
                             Revelar Resposta
                         </button>
                         <button
-                            onClick={handleNextQuestion}
+                            onClick={onNextQuestion}
                             disabled={currentQuestionIndex === questions.length - 1}
                             className="w-auto flex items-center justify-center gap-2 bg-slate-200 text-slate-600 font-semibold py-3 px-5 rounded-lg hover:bg-slate-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
@@ -195,19 +165,19 @@ const QuizView: React.FC = () => {
                 ) : (
                     <>
                         <button
-                            onClick={() => handleScore('incorrect')}
+                            onClick={() => handleScoreAndNext('incorrect')}
                             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-rose-500 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-rose-600 transition-all transform hover:scale-105"
                         >
                             <ThumbsDown className="w-4 h-4"/> Errei
                         </button>
                         <button
-                            onClick={() => handleScore('correct')}
+                            onClick={() => handleScoreAndNext('correct')}
                             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-500 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-emerald-600 transition-all transform hover:scale-105"
                         >
                             <ThumbsUp className="w-4 h-4"/> Acertei
                         </button>
                         <button
-                            onClick={goToNextQuestion}
+                            onClick={onNextQuestion}
                             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-200 text-slate-600 font-semibold py-3 px-6 rounded-lg hover:bg-slate-300 transition-colors"
                         >
                              Pular <SkipForward className="w-4 h-4"/>
