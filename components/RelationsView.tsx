@@ -38,7 +38,8 @@ const RelationsView: React.FC<RelationsViewProps> = ({ muscles }) => {
   const groupedData = useMemo<GroupedMuscles>(() => {
     const groups: GroupedMuscles = {};
     muscles.forEach(muscle => {
-      const value = muscle[activeLens];
+      // Cast explícito para garantir acesso seguro já que 'muscles' está no tipo LensType mas não é chave de Muscle
+      const value = muscle[activeLens as keyof Muscle];
       if (typeof value !== 'string' || !value) {
         return;
       }

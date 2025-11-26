@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Muscle } from '../types';
-import { Zap, Activity, ChevronRight, X, Info, MapPin, ArrowRight, ScanEye, MousePointerClick, Heart, Droplets } from 'lucide-react';
+import { Zap, Activity, ChevronRight, X, Info, MapPin, ArrowRight, ScanEye, MousePointerClick, Heart, Droplets, BicepsFlexed } from 'lucide-react';
 import MuscleCard from './MuscleCard';
 import FootLayerDiagram from './FootLayerDiagram';
 import { normalizeTerm, getColorTheme, LensType, getKeywordForLens } from '../utils';
@@ -18,6 +18,13 @@ const getLensConfig = (lens: LensType, isActive: boolean) => {
     
     // Configurações de cores específicas para cada lente
     switch (lens) {
+        case 'muscles': // Músculos (Novo - Rose/Vermelho Escuro)
+            return {
+                className: `${baseClasses} ${isActive 
+                    ? 'bg-rose-600 text-white border-rose-700 ring-2 ring-rose-400 ring-offset-1' 
+                    : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50'}`,
+                icon: BicepsFlexed
+            };
         case 'innervation': // Amarelo
             return {
                 className: `${baseClasses} ${isActive 
@@ -69,6 +76,12 @@ const getLensConfig = (lens: LensType, isActive: boolean) => {
 
 const getUniqueTerms = (muscles: Muscle[], type: LensType) => {
     if (muscles.length === 0) return [];
+
+    // Tratamento especial para listar os músculos diretamente
+    if (type === 'muscles') {
+        return muscles.map(m => m.name).sort();
+    }
+
     const uniqueTerms = new Set<string>();
     muscles.forEach(m => {
         const value = m[type as keyof Muscle] as string;
@@ -111,6 +124,7 @@ const MuscleCluster: React.FC<{ title: string; count: number; muscles: Muscle[] 
                         {title.toLowerCase().includes('inervação') || title.toLowerCase().includes('nervo') ? <Zap className="w-4 h-4" fill="currentColor" /> :
                          title.toLowerCase().includes('artéria') ? <Heart className="w-4 h-4" fill="currentColor" /> :
                          title.toLowerCase().includes('veia') ? <Droplets className="w-4 h-4" fill="currentColor" /> :
+                         title.toLowerCase().includes('músculo') ? <BicepsFlexed className="w-4 h-4" fill="currentColor" /> :
                          <ScanEye className="w-4 h-4" />}
                     </span>
                     {title}
@@ -136,15 +150,15 @@ const CentralHub: React.FC<{ title: string; total: number; lens: LensType }> = (
     
     return (
         <div className={`
-            w-28 h-28 rounded-full bg-white shadow-xl border-[6px] ${theme.border} 
+            w-24 h-24 rounded-full bg-white shadow-xl border-[5px] ${theme.border} 
             flex flex-col items-center justify-center z-20 relative animate-zoom-in 
-            ring-8 ring-slate-50
+            ring-4 ring-slate-50
         `}>
             <div className={`absolute inset-1 rounded-full border border-dashed ${theme.border} animate-spin-slow opacity-40`}></div>
-            <span className="text-[11px] sm:text-xs font-black text-slate-800 uppercase tracking-wide text-center leading-none px-1">
+            <span className="text-[10px] sm:text-[11px] font-black text-slate-800 uppercase tracking-wide text-center leading-none px-1">
                {title}
             </span>
-            <span className={`text-[10px] font-bold ${theme.text} ${theme.soft} px-3 py-0.5 rounded-full mt-1.5`}>
+            <span className={`text-[10px] font-bold ${theme.text} ${theme.soft} px-2 py-0.5 rounded-full mt-1`}>
                 {total}
             </span>
         </div>
@@ -160,8 +174,6 @@ const SchematicNode: React.FC<{
 }> = ({ title, muscles, lens, onClick, customClass }) => {
     if (!muscles || muscles.length === 0) return null;
     
-    // Convert English lens key (e.g. 'origin') to Portuguese keyword (e.g. 'origem') 
-    // so getColorTheme returns the correct color palette.
     const lensKeyword = getKeywordForLens(lens); 
     const theme = getColorTheme(lensKeyword);
     
@@ -169,7 +181,7 @@ const SchematicNode: React.FC<{
         <div 
             onClick={onClick}
             className={`
-                w-44 z-10 cursor-pointer group transition-all duration-300 hover:scale-105 hover:z-30
+                w-40 z-10 cursor-pointer group transition-all duration-300 hover:scale-105 hover:z-30
                 ${customClass || ''}
             `}
         >
@@ -188,7 +200,7 @@ const SchematicNode: React.FC<{
                     {getUniqueTerms(muscles, lens).map((term, index) => (
                         <div key={index} className="flex items-start gap-1.5">
                             <div className={`w-1.5 h-1.5 rounded-full ${theme.solid} mt-1 flex-shrink-0`}></div>
-                            <span className="text-[11px] font-semibold leading-tight text-slate-600 group-hover:text-slate-900 line-clamp-3">
+                            <span className="text-[10px] font-semibold leading-tight text-slate-600 group-hover:text-slate-900 line-clamp-3">
                                 {term}
                             </span>
                         </div>
@@ -201,34 +213,72 @@ const SchematicNode: React.FC<{
 
 const RegionContainer: React.FC<{ 
     children: React.ReactNode, 
-    regionName: string, 
-    isGluteal?: boolean 
-}> = ({ children, isGluteal }) => {
+    variant?: 'default' | 'gluteal' | 'coxa' | 'perna'
+}> = ({ children, variant = 'default' }) => {
+    
+    // Estilos de borda e forma baseados na variante (Formato Ovoide/Triangular Assimétrico)
+    const getBorderStyle = () => {
+        switch (variant) {
+            case 'coxa':
+                // Mais largo na esquerda (medial), achatado na direita (lateral vazia)
+                return "border-radius: 55% 30% 30% 55% / 50% 50% 50% 50%";
+            case 'perna':
+                // Mais largo na direita (lateral), achatado na esquerda (medial vazia)
+                return "border-radius: 30% 55% 55% 30% / 50% 50% 50% 50%";
+            case 'gluteal':
+                // Semicírculo inferior mais aberto
+                return "border-radius: 10% 10% 100% 100% / 10% 10% 100% 100%";
+            default:
+                return "border-radius: 9999px"; // Círculo
+        }
+    };
+
+    // Ajuste de largura mínima para garantir que caibam lado a lado no desktop
+    // Gluteal (vertical) precisa de menos largura. Coxa/Perna (horizontal) precisam de mais.
+    const containerClasses = variant === 'coxa' || variant === 'perna'
+        ? 'min-w-[300px] rounded-[3rem]'
+        : 'min-w-[260px] sm:min-w-[280px] rounded-[2.5rem]';
+
     return (
-        <div className="relative bg-white rounded-[2.5rem] p-6 sm:p-8 shadow-sm border border-slate-200 flex flex-col items-center justify-center min-w-[350px] sm:min-w-[400px] h-auto min-h-[450px]">
-            {/* Quadrant Indicators */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 text-[10px] font-extrabold text-slate-300 uppercase tracking-[0.2em] bg-white px-2 z-0">
+        <div className={`
+            relative bg-white p-4 shadow-sm border border-slate-200 flex flex-col items-center justify-center 
+            h-auto min-h-[440px] transition-all duration-300
+            ${containerClasses}
+        `}>
+            {/* Rótulos de Direção - Posicionados nas extremidades absolutas, FORA da linha pontilhada */}
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em] bg-white px-2 z-10">
                 Anterior
             </div>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] font-extrabold text-slate-300 uppercase tracking-[0.2em] bg-white px-2 z-0">
+            
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em] bg-white px-2 z-10">
                 Posterior
             </div>
-            {!isGluteal && (
+
+            {variant !== 'gluteal' && (
                 <>
-                    <div className="absolute left-1 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] font-extrabold text-slate-300 uppercase tracking-[0.2em] bg-white px-2 z-0 origin-center">
+                    <div className={`
+                        absolute top-1/2 -translate-y-1/2 -rotate-90 text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em] bg-white px-2 z-10 origin-center
+                        left-1 
+                    `}>
                         Medial
                     </div>
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 rotate-90 text-[10px] font-extrabold text-slate-300 uppercase tracking-[0.2em] bg-white px-2 z-0 origin-center">
+                    <div className={`
+                        absolute top-1/2 -translate-y-1/2 rotate-90 text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em] bg-white px-2 z-10 origin-center
+                        right-1
+                    `}>
                         Lateral
                     </div>
                 </>
             )}
 
-            {/* Decorative Borders */}
-            <div className="absolute inset-8 rounded-full border-2 border-dashed border-slate-100 pointer-events-none z-0"></div>
+            {/* Linha Pontilhada Decorativa - Com INSET maior para não tocar nos rótulos */}
+            <div 
+                className="absolute inset-8 sm:inset-10 border-2 border-dashed border-slate-100 pointer-events-none z-0 transition-all duration-500"
+                style={{ borderRadius: getBorderStyle().replace('border-radius: ', '') }}
+            ></div>
             
-            {/* Content Area */}
-            <div className="relative w-full h-full flex flex-col items-center justify-center z-10">
+            {/* Content Area - Com padding para garantir que os blocos não toquem nas bordas */}
+            <div className="relative w-full h-full flex flex-col items-center justify-center z-10 py-6 px-1">
                 {children}
             </div>
         </div>
@@ -266,6 +316,12 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
 
   const groupedMusclesInModal = useMemo(() => {
     if (!selectedGroup) return [];
+
+    // Se estiver no modo Músculos, não agrupa por termo, apenas lista todos
+    if (activeLens === 'muscles') {
+        return [{ title: 'Músculos', items: selectedGroup.muscles }];
+    }
+    
     const groups: Record<string, Muscle[]> = {};
     selectedGroup.muscles.forEach(m => {
         const value = m[activeLens as keyof Muscle] as string;
@@ -304,45 +360,58 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
     });
 
     const isGluteal = regionName.includes('Glútea');
+    const isCoxa = regionName === 'Coxa';
+    const isPerna = regionName === 'Perna';
     
+    // Determine Variant for Shape
+    let variant: 'default' | 'gluteal' | 'coxa' | 'perna' = 'default';
+    if (isGluteal) variant = 'gluteal';
+    else if (isCoxa) variant = 'coxa';
+    else if (isPerna) variant = 'perna';
+
     // Layout Dinâmico para Glútea (Vertical Stack)
     if (isGluteal) {
         return (
-            <RegionContainer regionName={regionName} isGluteal={isGluteal}>
-                <div className="flex flex-col items-center gap-8 w-full py-6">
+            <RegionContainer variant="gluteal">
+                <div className="flex flex-col items-center justify-between h-full gap-4 w-full py-2">
                     {/* HUB */}
                     <CentralHub title={regionName} total={regionMuscles.length} lens={activeLens} />
                     
                     {/* POSTERIOR STACK (Profundo em cima, Superficial embaixo) */}
-                    <div className="flex flex-col items-center gap-2 w-full">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Região Posterior</span>
-                        <div className="flex flex-col gap-4">
-                            <SchematicNode
-                                title="Profundo"
-                                muscles={byCompartment['Profundo']}
-                                lens={activeLens}
-                                onClick={() => setSelectedGroup({ title: `${regionName} - Profundo`, muscles: byCompartment['Profundo'] })}
-                            />
-                            <SchematicNode
-                                title="Superficial"
-                                muscles={byCompartment['Superficial']}
-                                lens={activeLens}
-                                onClick={() => setSelectedGroup({ title: `${regionName} - Superficial`, muscles: byCompartment['Superficial'] })}
-                            />
-                        </div>
+                    <div className="flex flex-col items-center gap-3 w-full pb-6">
+                        <SchematicNode
+                            title="Profundo"
+                            muscles={byCompartment['Profundo']}
+                            lens={activeLens}
+                            onClick={() => setSelectedGroup({ title: `${regionName} - Profundo`, muscles: byCompartment['Profundo'] })}
+                        />
+                        <SchematicNode
+                            title="Superficial"
+                            muscles={byCompartment['Superficial']}
+                            lens={activeLens}
+                            onClick={() => setSelectedGroup({ title: `${regionName} - Superficial`, muscles: byCompartment['Superficial'] })}
+                        />
                     </div>
                 </div>
             </RegionContainer>
         );
     }
 
-    // Layout Dinâmico em Grid para Coxa e Perna (Evita sobreposição)
+    // Grid Column Definitions based on Variant
+    // Coxa: Medial (Left) exists, Lateral (Right) is empty. Collapse Right.
+    // Perna: Lateral (Right) exists, Medial (Left) is empty. Collapse Left.
+    const gridCols = isCoxa 
+        ? "grid-cols-[1fr_auto_0.1fr]" // Coxa: Collapse right
+        : isPerna 
+            ? "grid-cols-[0.1fr_auto_1fr]" // Perna: Collapse left
+            : "grid-cols-[1fr_auto_1fr]"; // Default
+
     return (
-      <RegionContainer regionName={regionName} isGluteal={isGluteal}>
-            <div className="grid grid-cols-[1fr_auto_1fr] grid-rows-[auto_auto_auto] gap-x-4 gap-y-6 items-center justify-items-center w-full h-full py-6">
+      <RegionContainer variant={variant}>
+            <div className={`grid ${gridCols} grid-rows-[auto_auto_auto] gap-x-1 gap-y-4 items-center justify-items-center w-full`}>
                 
                 {/* Anterior (Top Center) */}
-                <div className="col-start-2 row-start-1">
+                <div className="col-start-2 row-start-1 pb-2">
                     <SchematicNode
                         title="Anterior"
                         muscles={byCompartment['Anterior']}
@@ -352,7 +421,7 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
                 </div>
 
                 {/* Medial (Left) */}
-                <div className="col-start-1 row-start-2 justify-self-end">
+                <div className="col-start-1 row-start-2 justify-self-end pr-1">
                     {byCompartment['Medial'] && (
                         <SchematicNode
                             title="Medial"
@@ -369,7 +438,7 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
                 </div>
 
                 {/* Lateral (Right) */}
-                <div className="col-start-3 row-start-2 justify-self-start">
+                <div className="col-start-3 row-start-2 justify-self-start pl-1">
                      {byCompartment['Lateral'] && (
                         <SchematicNode
                             title="Lateral"
@@ -381,7 +450,7 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
                 </div>
 
                 {/* Posterior (Bottom Center) */}
-                <div className="col-start-2 row-start-3">
+                <div className="col-start-2 row-start-3 pt-2">
                      <SchematicNode
                         title="Posterior"
                         muscles={byCompartment['Posterior']}
@@ -423,7 +492,7 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
        {/* Lens Switcher */}
        <div className="sticky top-20 z-30 flex justify-center py-3 bg-slate-50/95 backdrop-blur-sm -mx-4 px-4 border-b border-slate-100 shadow-sm mb-8">
           <div className="flex gap-3 overflow-x-auto max-w-full pb-1 hide-scrollbar px-2">
-            {(['innervation', 'vascularization', 'veins', 'action', 'origin', 'insertion'] as LensType[]).map(lens => {
+            {(['muscles', 'innervation', 'vascularization', 'veins', 'action', 'origin', 'insertion'] as LensType[]).map(lens => {
                 const config = getLensConfig(lens, activeLens === lens);
                 const Icon = config.icon;
                 return (
@@ -440,8 +509,8 @@ const SchematicView: React.FC<SchematicViewProps> = ({ muscles }) => {
           </div>
        </div>
 
-       {/* MAIN DIAGRAMS AREA - ALIGNED HORIZONTALLY */}
-       <div className="flex flex-wrap justify-center items-start gap-8 px-4 w-full">
+       {/* MAIN DIAGRAMS AREA - Side by Side Layout for main regions */}
+       <div className="flex flex-wrap justify-center items-start gap-6 px-2 w-full">
            {/* GLÚTEA */}
            {musclesByRegion['Região Glútea'] && renderRegionDiagram('Região Glútea', musclesByRegion['Região Glútea'])}
            

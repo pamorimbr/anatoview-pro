@@ -1,7 +1,8 @@
-export type LensType = 'innervation' | 'action' | 'origin' | 'insertion' | 'vascularization' | 'veins';
+export type LensType = 'innervation' | 'action' | 'origin' | 'insertion' | 'vascularization' | 'veins' | 'muscles';
 
 export const getKeywordForLens = (lens: LensType): string => {
   switch (lens) {
+    case 'muscles': return 'músculos';
     case 'innervation': return 'inervação';
     case 'vascularization': return 'artéria';
     case 'veins': return 'veia';
@@ -117,6 +118,9 @@ export const normalizeTerm = (text: string, type: LensType): string => {
 export const getColorTheme = (term: string) => {
     const t = term.toLowerCase();
     
+    // Tema para Músculos (Novo)
+    if (t.includes('músculo')) return { solid: 'bg-rose-600', soft: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-800', ring: 'focus:ring-rose-600' };
+
     // Paleta de Cores Dedicada e Otimizada para Nervos (única e com alto contraste)
     // Rebalanceado para melhorar a distinção entre nervos adjacentes (ex: Fibulares)
     if (t.includes('isquiático') || t.includes('ciático')) return { solid: 'bg-slate-500', soft: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-700', ring: 'focus:ring-slate-500' }; // Tronco principal - neutro
