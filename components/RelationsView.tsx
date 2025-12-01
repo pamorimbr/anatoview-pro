@@ -38,15 +38,14 @@ const RelationsView: React.FC<RelationsViewProps> = ({ muscles }) => {
   const groupedData = useMemo<GroupedMuscles>(() => {
     const groups: GroupedMuscles = {};
     muscles.forEach(muscle => {
-      // Cast explícito para garantir acesso seguro já que 'muscles' está no tipo LensType mas não é chave de Muscle
       const value = muscle[activeLens as keyof Muscle];
       if (typeof value !== 'string' || !value) {
         return;
       }
       
-      // CORREÇÃO: Remove o conteúdo dos parênteses
       const cleanedValue = value.replace(/\([^)]*\)/g, '');
-      const terms = cleanedValue.split(/,|\/|;|\+/);
+      // Regex aprimorado para separar por ',', '/', ';', '+', e a palavra 'e' com espaços
+      const terms = cleanedValue.split(/,|\/|;|\+|\s+e\s+/);
       
       const uniqueNormalizedTerms = new Set<string>();
       terms.forEach(t => {
@@ -60,7 +59,10 @@ const RelationsView: React.FC<RelationsViewProps> = ({ muscles }) => {
         if (!groups[term]) {
           groups[term] = [];
         }
-        groups[term].push(muscle);
+        // Evita adicionar o mesmo músculo duas vezes ao mesmo grupo (caso de normalização)
+        if (!groups[term].find(m => m.id === muscle.id)) {
+            groups[term].push(muscle);
+        }
       });
     });
     return groups;
@@ -177,7 +179,7 @@ const RelationsView: React.FC<RelationsViewProps> = ({ muscles }) => {
                             {selectedKey}
                         </h3>
                         <p className="text-sm font-medium text-slate-500">
-                            Encontrado em <span className="text-slate-900 font-bold">{selectedMuscles.length}</span> músculos
+                            Encontrado em <span className="text-slate-900 font-bold">{selectedMuscles.length}</span> {selectedMuscles.length === 1 ? 'músculo' : 'músculos'}
                         </p>
                     </div>
                 </div>

@@ -55,27 +55,39 @@ export const normalizeTerm = (text: string, type: LensType): string => {
   }
 
   if (type === 'innervation') {
-    // Normaliza removendo as raízes para agrupamento
+    // Normaliza removendo as raízes para agrupamento (e.g., L2-L4)
     const normalizedText = trimmed.replace(/\s*\([^)]*\)/g, '');
     const lowerNormalized = normalizedText.toLowerCase();
 
-    if (lowerNormalized.includes('femoral') && !lowerNormalized.includes('quadrado')) return 'N. Femoral';
-    if (lowerNormalized.includes('obturador')) return 'N. Obturador';
+    // --- GRUPO 1: Ramos musculares específicos (devem ser checados primeiro para evitar conflitos) ---
+    if (lowerNormalized.includes('quad. femoral') || lowerNormalized.includes('quadrado femoral')) return 'N. para o Quad. Femoral';
+    if (lowerNormalized.includes('obt. interno') || lowerNormalized.includes('obturador interno')) return 'N. para o Obt. Interno';
+    if (lowerNormalized.includes('piriforme')) return 'N. para o m. Piriforme';
+    
+    // --- GRUPO 2: Troncos principais com nomes que podem ser substrings de outros (requerem lógica cuidadosa) ---
+    // N. Femoral: Usa correspondência exata para não capturar "N. do Quadrado Femoral".
+    if (lowerNormalized === 'n. femoral') return 'N. Femoral';
+    
+    // N. Obturador: Checado após os ramos específicos para evitar conflito com "N. para o Obturador Interno".
+    if (lowerNormalized.includes('obturatório') || lowerNormalized.includes('obturador')) return 'N. Obturador';
+
+    // --- GRUPO 3: Outros nervos principais (menos ambíguos) ---
     if (lowerNormalized.includes('glúteo superior')) return 'N. Glúteo Superior';
     if (lowerNormalized.includes('glúteo inferior')) return 'N. Glúteo Inferior';
     if (lowerNormalized.includes('tibial')) return 'N. Tibial';
-    if (lowerNormalized.includes('fibular comum')) return 'N. Fibular Comum';
     if (lowerNormalized.includes('fibular profundo')) return 'N. Fibular Profundo';
     if (lowerNormalized.includes('fibular superficial')) return 'N. Fibular Superficial';
+    if (lowerNormalized.includes('fibular comum')) return 'N. Fibular Comum';
     if (lowerNormalized.includes('plantar medial')) return 'N. Plantar Medial';
     if (lowerNormalized.includes('plantar lateral')) return 'N. Plantar Lateral';
     if (lowerNormalized.includes('isquiático') || lowerNormalized.includes('ciático')) return 'N. Isquiático';
-    if (lowerNormalized.includes('do quadrado femoral')) return 'N. do Quadrado Femoral';
-    if (lowerNormalized.includes('do obturador interno')) return 'N. do Obturador Interno';
+    
+    // --- GRUPO 4: Ramos de raízes ---
     if (lowerNormalized.includes('ramos ventrais de l1-l3')) return 'Ramos Ventrais de L1-L3';
     if (lowerNormalized.includes('ramos ventrais de l5-s2')) return 'Ramos Ventrais de L5-S2';
     
-    return normalizedText; // Retorna o termo normalizado sem raízes
+    // Fallback: Retorna o texto original (normalizado) se não corresponder a nenhum grupo principal.
+    return normalizedText;
   }
 
   if (type === 'action') {
@@ -142,7 +154,7 @@ export const getColorTheme = (term: string) => {
     if (t.includes('plantar lateral')) return { solid: 'bg-green-500', soft: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', ring: 'focus:ring-green-500' };
 
     // Nervos Menores / Ramos Musculares
-    if (t.includes('quadrado femoral') || t.includes('obturador interno')) return { solid: 'bg-orange-500', soft: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', ring: 'focus:ring-orange-500' };
+    if (t.includes('quadrado femoral') || t.includes('obturador interno') || t.includes('quad. femoral') || t.includes('obt. interno') || t.includes('piriforme')) return { solid: 'bg-orange-500', soft: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', ring: 'focus:ring-orange-500' };
     if (t.includes('ramos ventrais de l5-s2')) return { solid: 'bg-rose-500', soft: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700', ring: 'focus:ring-rose-500' };
     if (t.includes('ramos ventrais de l1-l3')) return { solid: 'bg-pink-500', soft: 'bg-pink-50', border: 'border-pink-200', text: 'text-pink-700', ring: 'focus:ring-pink-500' };
 

@@ -561,7 +561,7 @@ export const QUIZ_DATA: QuizItem[] = [
   {
     id: 'prova-a-2',
     category: 'Prova Final A',
-    question: 'Qual a formação do N. Obturatório?',
+    question: 'Qual a formação do N. Obturador?',
     answer: 'Formado pelas divisões anteriores das raízes L2, L3 e L4 do plexo lombar',
   },
   {
