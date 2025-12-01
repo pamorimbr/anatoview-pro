@@ -26,7 +26,7 @@ const App: React.FC = () => {
   const [selectedCompartment, setSelectedCompartment] = useState<string>('Todos');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
-  const [sortConfig, setSortConfig] = useState<{ key: 'name' | 'innervation'; direction: 'ascending' | 'descending' } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: 'name' | 'origin' | 'insertion' | 'action' | 'innervation'; direction: 'ascending' | 'descending' } | null>(null);
   
   // State do Quiz movido para cá para persistir entre abas
   const [quizQuestions, setQuizQuestions] = useState<QuizItem[]>([]);
@@ -131,7 +131,7 @@ const App: React.FC = () => {
 
   const handlePreviousQuizQuestion = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
+      setCurrentQuestionIndex(prev => prev + 1);
     }
   };
 
@@ -150,7 +150,7 @@ const App: React.FC = () => {
 
   const isFilterAreaVisible = viewMode === 'cards' || viewMode === 'table' || viewMode === 'schematic';
   
-  const requestSort = (key: 'name' | 'innervation') => {
+  const requestSort = (key: 'name' | 'origin' | 'insertion' | 'action' | 'innervation') => {
     let direction: 'ascending' | 'descending' = 'ascending';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
       direction = 'descending';
@@ -158,7 +158,7 @@ const App: React.FC = () => {
     setSortConfig({ key, direction });
   };
 
-  const getSortIcon = (key: 'name' | 'innervation') => {
+  const getSortIcon = (key: 'name' | 'origin' | 'insertion' | 'action' | 'innervation') => {
     if (!sortConfig || sortConfig.key !== key) {
       return <ChevronDown className="w-3 h-3 text-slate-300 inline-block ml-1 group-hover:text-slate-400" />;
     }
@@ -312,7 +312,9 @@ const App: React.FC = () => {
                       <thead className="bg-slate-50">
                         <tr>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 group" onClick={() => requestSort('name')}>Músculo {getSortIcon('name')}</th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Ação Principal</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 group" onClick={() => requestSort('origin')}>Origem {getSortIcon('origin')}</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 group" onClick={() => requestSort('insertion')}>Inserção {getSortIcon('insertion')}</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 group" onClick={() => requestSort('action')}>Ação Principal {getSortIcon('action')}</th>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 group" onClick={() => requestSort('innervation')}>Inervação {getSortIcon('innervation')}</th>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Detalhes</th>
                         </tr>
@@ -324,6 +326,8 @@ const App: React.FC = () => {
                               <div className="text-sm font-bold text-slate-900">{muscle.name}</div>
                               <div className="text-xs text-slate-500">{muscle.region} • {muscle.compartment === 'Planta' ? 'Visão de plantar para dorsal' : muscle.compartment}</div>
                             </td>
+                            <td className="px-6 py-4 whitespace-normal text-sm text-slate-600 max-w-xs">{muscle.origin}</td>
+                            <td className="px-6 py-4 whitespace-normal text-sm text-slate-600 max-w-xs">{muscle.insertion}</td>
                             <td className="px-6 py-4 whitespace-normal text-sm text-slate-600 max-w-xs">{muscle.action}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 font-medium">
                                <div className="flex flex-wrap gap-1">
