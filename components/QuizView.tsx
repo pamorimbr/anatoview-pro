@@ -128,7 +128,7 @@ const QuizView: React.FC<QuizViewProps> = ({
                     )}
                 </div>
                 
-                {currentQuestion.category !== 'Prova Final A' && currentQuestion.category !== 'Prova Final B' && (
+                {currentQuestion.category !== 'Prova Final A' && currentQuestion.category !== 'Prova Final B' && currentQuestion.category !== 'Prováveis Questões' && (
                     <div className="mt-6 text-right">
                         <p className="text-xs italic text-slate-400">
                             Questão concedida por Grupo de Monitoria UIT (Pedro Antônio e Thiago Hey).
