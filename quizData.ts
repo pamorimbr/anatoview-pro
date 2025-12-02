@@ -921,7 +921,7 @@ export const QUIZ_DATA: QuizItem[] = [
     id: 'prov-q-5',
     category: 'Prováveis Questões',
     question: 'Origem do ligamento cruzado anterior (LCA)',
-    answer: 'Área intercondilar anterior da tíbia',
+    answer: 'Origina-se na parede medial do côndilo femoral lateral',
   },
   {
     id: 'prov-q-6',
